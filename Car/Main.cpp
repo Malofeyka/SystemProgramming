@@ -1,13 +1,21 @@
 #include <iostream>
 using namespace std;
-#define MIN_TANK_VOLUME 20;
-#define MAX_TANK_VOLUME 120;
+#define MIN_TANK_VOLUME 20
+#define MAX_TANK_VOLUME 120
 
 
 class Tank 
 {
 	const int VOLUME;
 	double fuel_level;
+
+	static int check_fuel_volume(int volume) 
+	{
+		if (volume < MIN_TANK_VOLUME) return MIN_TANK_VOLUME;
+		else if (volume > MAX_TANK_VOLUME) return MAX_TANK_VOLUME;
+		else return volume;
+	}
+
 
 public:
 	const int getVOLUME()const {
@@ -40,11 +48,9 @@ public:
 		return fuel_level;
 	}
 
-	Tank(int volume):VOLUME(volume)
-	{
-		/*if (volume < (int)MIN_TANK_VOLUME) volume = MIN_TANK_VOLUME;
-		if (volume > MAX_TANK_VOLUME) volume = MAX_TANK_VOLUME;		
-		this->fuel_level = 0;*/
+	Tank(int volume):VOLUME(check_fuel_volume(volume))
+	{		
+		this->fuel_level = 0;
 		cout << "Tank is ready " << this << endl;
 	}
 
@@ -60,7 +66,7 @@ public:
 void main()
 {
 	setlocale(LC_ALL, "");
-	Tank tank(50);
+	Tank tank(-50);
 	tank.info();
 
 }
