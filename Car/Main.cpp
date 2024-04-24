@@ -12,12 +12,12 @@ using namespace std;
 #define MAX_TANK_VOLUME 120
 
 
-class Tank 
+class Tank
 {
 	const int VOLUME;
 	double fuel_level;
 
-	static int check_fuel_volume(int volume) 
+	static int check_fuel_volume(int volume)
 	{
 		if (volume < MIN_TANK_VOLUME) return MIN_TANK_VOLUME;
 		else if (volume > MAX_TANK_VOLUME) return MAX_TANK_VOLUME;
@@ -29,16 +29,16 @@ public:
 	const int getVOLUME()const {
 		return VOLUME;
 	}
-	double get_fuel_level()const 
+	double get_fuel_level()const
 	{
 		return fuel_level;
 	}
-	
-	
-	void fill(double amount) 
+
+
+	void fill(double amount)
 	{
 		if (amount < 0) return;
-		if (fuel_level + amount < VOLUME) 
+		if (fuel_level + amount < VOLUME)
 		{
 			fuel_level += amount;
 		}
@@ -56,8 +56,8 @@ public:
 		return fuel_level;
 	}
 
-	Tank(int volume):VOLUME(check_fuel_volume(volume))
-	{		
+	Tank(int volume) :VOLUME(check_fuel_volume(volume))
+	{
 		this->fuel_level = 0;
 		cout << "Tank is ready " << this << endl;
 	}
@@ -65,7 +65,7 @@ public:
 	void info()const
 	{
 		cout << "Tank volume: " << VOLUME << " liters.\n";
-		cout << "Fuel level: " << fuel_level << " liters.\n";		
+		cout << "Fuel level: " << fuel_level << " liters.\n";
 	}
 	~Tank()
 	{
@@ -85,7 +85,7 @@ class Engine
 	bool is_started;
 
 public:
-	double get_consumprion()const 
+	double get_consumprion()const
 	{
 		return CONSUMPTION;
 	}
@@ -117,8 +117,8 @@ public:
 	),
 		consumption_per_second(consumption * 3e-5),
 		is_started(false)
-	{		
-		cout << "Engine is ready " << this << endl;		
+	{
+		cout << "Engine is ready " << this << endl;
 	}
 
 	~Engine()
@@ -130,7 +130,7 @@ public:
 	{
 		cout << "Consumption: " << CONSUMPTION << " liters/100km" << endl;
 		cout << "Cunsumption per second: " << consumption_per_second << " liters/100km" << endl;
-		cout << "Engine is " << (is_started ? "started" : "stopped")<<endl;
+		cout << "Engine is " << (is_started ? "started" : "stopped") << endl;
 	}
 
 };
@@ -143,7 +143,7 @@ public:
 class Car
 {
 	Engine engine;
-	Tank tank;	
+	Tank tank;
 	bool driver_inside;
 	struct //анонимный класс(у структуры нет названия)
 	{
@@ -151,9 +151,9 @@ class Car
 		thread engine_idle_thread;
 		thread free_wheeling_thread;
 	}threads;
-	int speed;	
+	int speed;
 	const int MAX_SPEED;
-	int acceleration;
+	const int ACCELERATION;
 
 
 public:
@@ -161,14 +161,14 @@ public:
 		engine(consumption),
 		tank(volume),
 		driver_inside(false),
-		speed(0),		
+		speed(0),
 		MAX_SPEED
 		(
 			max_speed < MAX_SPEED_LOW_LIMIT ? MAX_SPEED_LOW_LIMIT :
 			max_speed > MAX_SPEED_HIGH_LIMIT ? MAX_SPEED_HIGH_LIMIT :
 			max_speed
 		),
-		acceleration(MAX_SPEED / 20)
+		ACCELERATION(MAX_SPEED / 20)
 	{
 		cout << "Your car is ready to go" << endl;
 	}
@@ -186,13 +186,13 @@ public:
 	void get_in()
 	{
 		driver_inside = true;
-		threads.panel_thread = thread(&Car::panel,this);
+		threads.panel_thread = thread(&Car::panel, this);
 	}
 
 	void get_out()
-	{		
+	{
 		driver_inside = false;
-		if(threads.panel_thread.joinable()) threads.panel_thread.join();
+		if (threads.panel_thread.joinable()) threads.panel_thread.join();
 		system("cls");
 		cout << "Out of the car" << endl;
 	}
@@ -202,11 +202,12 @@ public:
 		char key;
 		do
 		{
-			key = _getch();
+			key = 0;
+			if (_kbhit())key = _getch();
 			switch (key)
 			{
 			case Enter: driver_inside ? get_out() : get_in(); break;
-			case Escape: get_out(); stop(); break;
+			case Escape: speed = 0; stop(); get_out(); break;
 			case 'f':
 			case 'F':
 			{
@@ -217,7 +218,7 @@ public:
 				else
 				{
 					double fuel;
-					cout << "Сколько заправить: "; cin >> fuel;
+					cout << "Сколько заправить: "; cin.clear(); cin >> fuel;
 					tank.fill(fuel);
 				} break;
 			}
@@ -228,14 +229,18 @@ public:
 			case 'W': case 'w': accelerate(); break;
 			case 'S': case 's': slow_down(); break;
 			}
-			
+			if (tank.get_fuel_level() == 0)stop();
+			if (speed < 0)speed = 0;
+			if (speed == 0 && threads.free_wheeling_thread.joinable()) threads.free_wheeling_thread.join();
+
 		} while (key != 27);
 	}
 
 	void free_wheeling()
 	{
-		while (--speed)
-		{			
+		while (speed--)
+		{
+			/*speed--;*/
 			if (speed < 0)speed = 0;
 			this_thread::sleep_for(1s);
 		}
@@ -243,7 +248,7 @@ public:
 
 	void accelerate() {
 		if (engine.started()) {
-			speed += acceleration;
+			speed += ACCELERATION;
 			if (speed > MAX_SPEED) speed = MAX_SPEED;
 			if (!threads.free_wheeling_thread.joinable()) threads.free_wheeling_thread = thread(&Car::free_wheeling, this);
 		}
@@ -251,9 +256,9 @@ public:
 	}
 
 	void slow_down() {
-		speed -= acceleration;
+		speed -= ACCELERATION;
 		if (speed < 0)speed = 0;
-		if (threads.free_wheeling_thread.joinable())
+		if (speed == 0 && threads.free_wheeling_thread.joinable())
 			threads.free_wheeling_thread.join();
 		this_thread::sleep_for(1s);
 	}
@@ -263,9 +268,10 @@ public:
 		while (driver_inside)
 		{
 			system("CLS");
-			
+			for (int i = 0; i < speed / 3; i++)cout << "|"; cout << endl;
+			cout << "Speed:	" << speed << endl;
 			cout << "Fuel level:\t" << tank.get_fuel_level() << " liters.\t";
-			if (tank.get_fuel_level() < 5) 
+			if (tank.get_fuel_level() < 5)
 			{
 				HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 				SetConsoleTextAttribute(hConsole, 0xC7);
@@ -274,9 +280,9 @@ public:
 			}
 			cout << endl;
 			cout << "Engine is " << (engine.started() ? "started" : "stopped") << endl;
-			cout << "Speed:	" << speed << endl;
-			std::this_thread::sleep_for(100ms);
 			
+			std::this_thread::sleep_for(100ms);
+
 		}
 	}
 
@@ -291,7 +297,7 @@ public:
 	void stop() {
 		engine.stop();
 		if (threads.engine_idle_thread.joinable())threads.engine_idle_thread.join();
-	}	
+	}
 
 
 	void engine_idle() {
@@ -323,8 +329,8 @@ void main()
 #endif
 
 	Car bmw;
-	bmw.info();		
-	
+	bmw.info();
+
 	bmw.control();
 
 }
