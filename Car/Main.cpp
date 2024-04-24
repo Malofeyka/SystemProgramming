@@ -1,4 +1,4 @@
-#include <iostream>
+п»ї#include <iostream>
 #include <conio.h>
 #include <thread>
 #include <Windows.h>
@@ -145,7 +145,7 @@ class Car
 	Engine engine;
 	Tank tank;	
 	bool driver_inside;
-	struct //анонимный класс(у структуры нет названия)
+	struct //Р°РЅРѕРЅРёРјРЅС‹Р№ РєР»Р°СЃСЃ(Сѓ СЃС‚СЂСѓРєС‚СѓСЂС‹ РЅРµС‚ РЅР°Р·РІР°РЅРёСЏ)
 	{
 		thread panel_thread;
 		thread engine_idle_thread;
@@ -217,7 +217,7 @@ public:
 				else
 				{
 					double fuel;
-					cout << "Сколько заправить: "; cin >> fuel;
+					cout << "РЎРєРѕР»СЊРєРѕ Р·Р°РїСЂР°РІРёС‚СЊ: "; cin >> fuel;
 					tank.fill(fuel);
 				} break;
 			}
@@ -312,7 +312,7 @@ void main()
 	int fuel;
 	do
 	{
-		cout << "Введите объём: "; cin >> fuel;
+		cout << "Р’РІРµРґРёС‚Рµ РѕР±СЉС‘Рј: "; cin >> fuel;
 		tank.fill(fuel);
 		tank.info();
 	} while (fuel > 0);
